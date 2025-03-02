@@ -1,1 +1,1 @@
-# Lab_2_parallel
+# Lab_parallel
