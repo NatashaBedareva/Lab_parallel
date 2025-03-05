@@ -24,14 +24,13 @@ void simple_iteration(const double* A, const std::vector<double>& b, std::vector
             }
             
             double norm = 0.0;
-            #pragma omp single
-            {
+            
                 for (int i = 0; i < n; ++i) {
                     norm += (x_new[i] - x[i]) * (x_new[i] - x[i]);
                 }
-                norm = sqrt(norm);
-            }
-            
+                
+            norm = sqrt(norm);
+
             #pragma omp single
             {
                 if (norm < tol) {
@@ -79,6 +78,8 @@ int main() {
     }
     std::cout << std::endl;
     */
+    
+    
 
     free(A);
     return 0;
