@@ -7,12 +7,13 @@
 
 void simple_iteration(const double* A, const std::vector<double>& b, std::vector<double>& x, double tol, int max_iter,int n) {
     
-    std::vector<double> x_new(n);
-    bool flag=false;
-    #pragma omp parallel num_threads(FREAD)
+    
+
+    #pragma omp parallel
     {
-        for (int k = 0; k < max_iter && !flag; ++k) {
-            #pragma omp for 
+        std::vector<double> x_new(n);
+        for (int k = 0; k < max_iter; ++k) {
+
             for (int i = 0; i < n; ++i) {
                 double sum = 0.0;
                 for (int j = 0; j < n; ++j) {
@@ -24,21 +25,17 @@ void simple_iteration(const double* A, const std::vector<double>& b, std::vector
             }
             
             double norm = 0.0;
-            
-                for (int i = 0; i < n; ++i) {
-                    norm += (x_new[i] - x[i]) * (x_new[i] - x[i]);
-                }
-                
-            norm = sqrt(norm);
-
-            #pragma omp single
-            {
-                if (norm < tol) {
-                    flag = true;
-                } else {
-                    x = x_new;
-                }
+            for (int i = 0; i < n; ++i) {
+                norm += (x_new[i] - x[i]) * (x_new[i] - x[i]);
             }
+            
+            norm = sqrt(norm);
+    
+            if (norm < tol) {
+                break;
+            }
+            
+            x = x_new;
         }
     }
     
@@ -70,16 +67,15 @@ int main() {
     t = omp_get_wtime()-t;
 
     std::cout<<"Time parallel V2 = "<<t<<std::endl;
-
+    
     /*
     std::cout << "RESULT: ";
     for (double xi : x) {
         std::cout << xi << " ";
     }
     std::cout << std::endl;
+
     */
-    
-    
 
     free(A);
     return 0;
