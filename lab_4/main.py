@@ -1,7 +1,10 @@
 import threading
+
 import queue
 import time
 import argparse
+
+import keyboard
 import logging
 import os
 
@@ -25,7 +28,6 @@ class SensorX(Sensor):
         time.sleep(self._delay)
         self._data += 1
         return self._data
-
 
 class SensorCam(Sensor):
     def __init__(self, camera_name: str, HW: tuple):
@@ -70,6 +72,8 @@ class WindowImage:
 
 def sensor_thread(sensor: Sensor, data_queue: queue.Queue):
     while True:
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
         try:
             data = sensor.get()
             data_queue.put(data)
@@ -78,12 +82,12 @@ def sensor_thread(sensor: Sensor, data_queue: queue.Queue):
             break
 
 
-def main(camera_name, resolution, display_frequency):
+def main(camera_name, HW, display_frequency):
     sensor0 = SensorX(0.01)
     sensor1 = SensorX(0.1)
     sensor2 = SensorX(1)
 
-    sensor_cam = SensorCam(camera_name, resolution)
+    sensor_cam = SensorCam(camera_name, HW)
 
     window_image = WindowImage(display_frequency)
 
@@ -105,6 +109,7 @@ def main(camera_name, resolution, display_frequency):
             data0 = data_queue0.get() if not data_queue0.empty() else None
             data1 = data_queue1.get() if not data_queue1.empty() else None
             data2 = data_queue2.get() if not data_queue2.empty() else None
+            
             frame = sensor_cam.get()
 
             img_with_data = frame.copy()
