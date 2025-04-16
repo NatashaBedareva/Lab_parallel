@@ -10,13 +10,16 @@ import argparse
 
 
 class KeyPontDetector:
-    def __init__(self):
+    def __init__(self,video_path):
         self.frames_queue = queue.Queue()
         self.frames_annotation_queue = queue.Queue()
         self.processed_frames = []
         self.frames_dict = {}
         self.model = YOLO('yolov8s-pose.pt', verbose=False)
         self.stop_event = threading.Event()
+        self.video_path = video_path
+        self.cap = cv2.VideoCapture(video_path)
+
 
     def read_video(self, video_path):
         cap = cv2.VideoCapture(video_path)
@@ -75,20 +78,24 @@ class KeyPontDetector:
             out.write(new_frame)
         out.release()
 
+    def __del__(self):
+        if self.cap.isOpened():
+            self.cap.release()
+
 def main(video_path,is_parallel,output_path):
 
-    detector = KeyPontDetector()
+    detector = KeyPontDetector(video_path)
 
     if is_parallel:
         thread_count = 6
     else:
         thread_count = 1
 
-    cap = cv2.VideoCapture(video_path)
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    frame_size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                  int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    cap.release()
+
+    fps = detector.cap.get(cv2.CAP_PROP_FPS)
+    frame_size = (int(detector.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                  int(detector.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    detector.cap.release()
 
     reader_thread = threading.Thread(target=detector.read_video, args=(video_path,))
     reader_thread.start()
